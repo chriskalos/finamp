@@ -290,8 +290,10 @@ class QueueService {
     if (currentMediaItem != null) {
       final item = jellyfin_models.BaseItemDto.fromJson(currentMediaItem.extras!["itemJson"] as Map<String, dynamic>);
       final artRequest = AlbumImageRequest(item: item);
+      var artworkRevision = 0;
 
       void updateMediaItem(AlbumImageInfo latest) async {
+        final revision = ++artworkRevision;
         var artUri = latest.uri;
         if (artUri == null) {
           // replace with placeholder art
@@ -305,7 +307,7 @@ class QueueService {
           final packageInfo = await PackageInfo.fromPlatform();
           artUri = Uri(scheme: "content", host: packageInfo.packageName, path: artUri.path);
         }
-        if (mediaItemGeneration != _mediaItemGeneration) return;
+        if (mediaItemGeneration != _mediaItemGeneration || revision != artworkRevision) return;
         currentMediaItem = currentMediaItem?.copyWith(artUri: artUri);
         _audioHandler.mediaItem.add(currentMediaItem);
       }

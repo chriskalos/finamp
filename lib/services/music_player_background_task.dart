@@ -456,6 +456,16 @@ class MusicPlayerBackgroundTask extends BaseAudioHandler with SeekHandler, Queue
           }
         }
       }
+      // The server may not know the duration until the playback engine loads it.
+      // Only apply the engine's duration to the item it actually describes.
+      final loadedItem = event.currentIndex == null
+          ? null
+          : playerSequence.elementAtOrNull(event.currentIndex!)?.tag as FinampQueueItem?;
+      final currentItem = mediaItem.valueOrNull;
+      if (currentItem != null && loadedItem?.item.id == currentItem.id &&
+          event.duration != null && event.duration! > Duration.zero && currentItem.duration != event.duration) {
+        mediaItem.add(currentItem.copyWith(duration: event.duration));
+      }
       playbackState.add(_transformEvent(event));
     });
 
@@ -1264,7 +1274,7 @@ class MusicPlayerBackgroundTask extends BaseAudioHandler with SeekHandler, Queue
       controls: [
         MediaControl.skipToPrevious,
         if (_player.playing) MediaControl.pause else MediaControl.play,
-        MediaControl.skipToNext,
+        if (!Platform.isMacOS || _player.hasNext) MediaControl.skipToNext,
         if (FinampSettingsHelper.finampSettings.showFavoriteButtonOnMediaNotification &&
             !FinampSettingsHelper.finampSettings.isOffline)
           MediaControl.custom(
@@ -1294,7 +1304,7 @@ class MusicPlayerBackgroundTask extends BaseAudioHandler with SeekHandler, Queue
         if (FinampSettingsHelper.finampSettings.showStopButtonOnMediaNotification)
           MediaControl.stop.copyWith(androidIcon: "drawable/baseline_stop_24"),
       ],
-      systemActions: FinampSettingsHelper.finampSettings.showSeekControlsOnMediaNotification
+      systemActions: Platform.isMacOS || FinampSettingsHelper.finampSettings.showSeekControlsOnMediaNotification
           ? const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward}
           : {},
       androidCompactActionIndices: const [0, 1, 2],
