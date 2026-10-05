@@ -125,10 +125,10 @@ final class NowPlayingController {
             info[MPMediaItemPropertyPlaybackDuration] = duration
         }
         let elapsed = value["elapsed"] as? Double ?? 0
-        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsed.isFinite ? max(0, elapsed) : 0
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsed.isFinite ? max(0, elapsed) : 0.0
         let rate = value["rate"] as? Double ?? 0
         info[MPNowPlayingInfoPropertyPlaybackRate] =
-            value["state"] as? String == "playing" && rate.isFinite ? max(0, rate) : 0
+            value["state"] as? String == "playing" && rate.isFinite ? max(0, rate) : 0.0
         return info
     }
 
